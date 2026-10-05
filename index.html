@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çağfen Bilim: Kozmik Görev (6. Sınıf)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #00e5ff; /* Neon Mavi (Yıldız Işığı) */
+            --secondary: #b026ff; /* Kozmik Mor */
+            --glass: rgba(10, 10, 35, 0.8);
+            --border: rgba(176, 38, 255, 0.4);
+        }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: #030308; font-family: 'Rajdhani', sans-serif; user-select: none; color: white; overflow: hidden; }
+        
+        /* Uzay Arka Plan Efektleri */
+        .bg-blob { position: absolute; border-radius: 50%; filter: blur(90px); z-index: 0; opacity: 0.5; animation: breathe 8s infinite alternate; pointer-events: none;}
+        .blob-1 { width: 45vw; height: 45vw; background: #1a0033; top: -10vw; left: -10vw; }
+        .blob-2 { width: 35vw; height: 35vw; background: #001133; bottom: -10vw; right: -10vw; }
+        .stars { position: absolute; width: 100%; height: 100%; background: transparent; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px); background-size: 100px 100px; opacity: 0.3; z-index: 0; }
+        
+        @keyframes breathe { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+
+        /* Ortak Cam Paneller */
+        .glass-panel { background: var(--glass); padding: 40px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 0 30px rgba(176, 38, 255, 0.2), inset 0 0 15px rgba(176, 38, 255, 0.1); text-align: center; z-index: 101; backdrop-filter: blur(15px); }
+
+        /* Giriş Paneli */
+        #login-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 100; transition: 0.5s ease-in-out; }
+        .login-box h2 { font-family: 'Orbitron', sans-serif; font-size: 36px; margin: 0 0 10px 0; color: #fff; text-shadow: 0 0 10px var(--secondary); }
+        .login-box p { color: #88ccff; font-size: 20px; margin-bottom: 25px; }
+        .login-box input { width: 80%; padding: 12px; font-size: 20px; font-family: 'Rajdhani', sans-serif; font-weight: bold; background: rgba(0,0,0,0.6); border: 2px solid var(--border); color: #fff; border-radius: 8px; text-align: center; margin-bottom: 20px; outline: none; transition: 0.3s; }
+        .login-box input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 229, 255, 0.6); }
+        .login-box button { padding: 12px 35px; font-size: 22px; font-family: 'Orbitron', sans-serif; font-weight: bold; color: white; background: linear-gradient(45deg, var(--secondary), #7000ff); border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(176, 38, 255, 0.5); }
+        .login-box button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(176, 38, 255, 0.8); }
+
+        /* Oyun İçi Arayüz */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; opacity: 0; transition: opacity 0.5s; flex-direction: column; justify-content: center; align-items: center;}
+        
+        .top-bar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 80%; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); padding: 10px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); z-index: 60;}
+        .stat { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: bold; }
+        .stat span { color: var(--primary); text-shadow: 0 0 8px var(--primary); }
+        
+        .progress-container { width: 40%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+        #progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--secondary), var(--primary)); box-shadow: 0 0 10px var(--primary); transition: width 0.3s; }
+
+        #leaderboard { position: absolute; top: 80px; right: 20px; background: rgba(10, 10, 35, 0.85); padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 5px 20px rgba(0,0,0,0.5); min-width: 220px; z-index: 60; backdrop-filter: blur(10px);}
+        #leaderboard h3 { margin: 0 0 10px 0; font-family: 'Orbitron', sans-serif; color: var(--secondary); font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
+        #lb-list { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+        #lb-list li { margin-bottom: 8px; display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
+
+        /* Oyun Alanı */
+        .game-container { width: 90%; max-width: 800px; text-align: center; z-index: 55; margin-top: 40px;}
+        
+        /* ÇFK LOGOSU */
+        .logo { max-width: 140px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.5)); transition: 0.3s;}
+        
+        #question-box { font-size: 32px; font-weight: bold; padding: 30px; margin-bottom: 40px; letter-spacing: 1px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        
+        .button-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        
+        /* Neon Butonlar (Mor ve Mavi) */
+        .neon-btn { flex: 1; min-width: 250px; padding: 25px 30px; font-size: 26px; font-family: 'Rajdhani', sans-serif; font-weight: bold; border-radius: 15px; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        
+        .btn-purple { border: 2px solid var(--secondary); color: #e5b3ff; box-shadow: 0 0 20px rgba(176, 38, 255, 0.3), inset 0 0 10px rgba(176, 38, 255, 0.2); }
+        .btn-purple:hover { background: var(--secondary); color: white; box-shadow: 0 0 40px var(--secondary); transform: translateY(-5px) scale(1.02); }
+        .btn-purple:active { transform: scale(0.95); }
+        
+        .btn-blue { border: 2px solid var(--primary); color: var(--primary); box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), inset 0 0 10px rgba(0, 229, 255, 0.2); }
+        .btn-blue:hover { background: var(--primary); color: #050510; box-shadow: 0 0 40px var(--primary); transform: translateY(-5px) scale(1.02); }
+        .btn-blue:active { transform: scale(0.95); }
+
+        .btn-disabled { pointer-events: none; opacity: 0.7; transform: scale(0.98) !important; }
+
+        /* Hata Efektleri */
+        @keyframes shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-5px,5px)} 40%{transform:translate(5px,-5px)} 60%{transform:translate(-5px,-5px)} 80%{transform:translate(5px,5px)} }
+        .error-shake { animation: shake 0.4s; box-shadow: inset 0 0 120px rgba(255,0,0,0.6) !important; }
+        .success-glow { box-shadow: inset 0 0 120px rgba(0,255,100,0.6) !important; }
+
+        @media (max-width: 768px) {
+            .button-container { flex-direction: column; gap: 15px; }
+            .neon-btn { padding: 18px; font-size: 22px; }
+            #question-box { font-size: 24px; padding: 20px; margin-bottom: 25px; }
+            .logo { max-width: 100px; margin-bottom: 15px; }
+            .top-bar { width: 90%; padding: 10px; font-size: 16px; top: 10px; }
+            .stat { font-size: 16px; }
+            #leaderboard { display: none; }
+            #ui-layer { padding-top: 60px; justify-content: flex-start; overflow-y: auto; display: block; }
+            .game-container { margin: 30px auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<!-- Giriş Ekranı -->
+<div id="login-screen">
+    <div class="glass-panel login-box" id="panel">
+        <h2>ÇAĞFEN KOZMİK GÖREV</h2>
+        <p>6. Sınıf Fen Bilimleri - Ünite 1</p>
+        <input type="text" id="playerName" placeholder="Öğrenci Adı Soyadı" autocomplete="off">
+        <br>
+        <button onclick="startGame()">Gemiye Bin</button>
+    </div>
+</div>
+
+<!-- Oyun Ekranı -->
+<div id="ui-layer">
+    <div class="top-bar">
+        <div class="stat">SKOR: <span id="score">0</span></div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        <div class="stat">SORU: <span id="q-count">1</span>/100</div>
+    </div>
+    
+    <div id="leaderboard">
+        <h3>🏆 UZAY GEZGİNLERİ</h3>
+        <ul id="lb-list"><li>Henüz kayıt yok...</li></ul>
+    </div>
+    
+    <div class="game-container">
+        <!-- LOGO -->
+        <img src="indir.png" alt="Çağfen Koleji Logo" class="logo">
+        
+        <div id="question-box" class="glass-panel">Yükleniyor...</div>
+        
+        <div class="button-container">
+            <button id="btn-a" class="neon-btn btn-purple" onclick="checkAnswer(1)">Seçenek A</button>
+            <button id="btn-b" class="neon-btn btn-blue" onclick="checkAnswer(2)">Seçenek B</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// 1. SES MOTORU
+// ==========================================
+let audioCtx;
+function initAudio() {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    
+    if (type === 'correct') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+    }
+}
+
+// ==========================================
+// 2. 6. SINIF FEN BİLİMLERİ (100 SORU)
+// ==========================================
+let questions = [
+    // Gezegenler Genel
+    { q: "Güneş sistemindeki en büyük gezegen hangisidir?", a: "Jüpiter", b: "Satürn", correct: 1 },
+    { q: "Güneş'e en yakın gezegen hangisidir?", a: "Merkür", b: "Venüs", correct: 1 },
+    { q: "Güneş sistemindeki en küçük gezegen hangisidir?", a: "Mars", b: "Merkür", correct: 2 },
+    { q: "'Kızıl Gezegen' olarak bilinen gezegen hangisidir?", a: "Mars", b: "Venüs", correct: 1 },
+    { q: "Halkaları en belirgin olan gezegen hangisidir?", a: "Uranüs", b: "Satürn", correct: 2 },
+    { q: "'Çoban Yıldızı' olarak da bilinen, Dünya'nın ikizi sayılan gezegen hangisidir?", a: "Venüs", b: "Mars", correct: 1 },
+    { q: "Güneş'e en uzak gezegen hangisidir?", a: "Neptün", b: "Uranüs", correct: 1 },
+    { q: "Üzerinde yaşam olduğu bilinen tek gezegen hangisidir?", a: "Dünya", b: "Mars", correct: 1 },
+    { q: "Güneş sisteminde uydusu olmayan gezegenler hangileridir?", a: "Merkür ve Venüs", b: "Mars ve Jüpiter", correct: 1 },
+    { q: "Kendi ekseni etrafında yan yatmış bir varil gibi dönen gezegen hangisidir?", a: "Neptün", b: "Uranüs", correct: 2 },
+    { q: "Güneş sistemindeki gezegenler hangi gök cisminin etrafında dolanır?", a: "Dünya", b: "Güneş", correct: 2 },
+    { q: "Güneş sistemindeki gezegenlerin dönüş yönü genelde saat yönünün tersidir. İstisna olan gezegen hangisidir?", a: "Venüs", b: "Mars", correct: 1 },
+    { q: "Uydusu en fazla olan gezegen hangisidir?", a: "Jüpiter", b: "Satürn", correct: 2 },
+    { q: "Güneş sistemindeki en soğuk gezegen hangisidir?", a: "Neptün", b: "Uranüs", correct: 2 },
+    { q: "Atmosferi çok yoğun olduğu için sera etkisiyle Güneş sisteminin en sıcak gezegeni olan gezegen hangisidir?", a: "Venüs", b: "Merkür", correct: 1 },
+    { q: "Gezegenlerin Güneş etrafında dolandıkları yörüngelerin şekli nasıldır?", a: "Tam daire", b: "Elips", correct: 2 },
+    { q: "Dünya'nın tek doğal uydusu nedir?", a: "Ay", b: "Güneş", correct: 1 },
+    { q: "Mars'ın kaç tane doğal uydusu vardır?", a: "2", b: "Yoktur", correct: 1 },
+    { q: "Jüpiter'in en bilinen dev uydusunun adı nedir?", a: "Titan", b: "Ganymede", correct: 2 },
+    { q: "Büyüklük olarak Dünya'ya en yakın gezegen hangisidir?", a: "Venüs", b: "Mars", correct: 1 },
+
+    // İç ve Dış Gezegenler
+    { q: "Karasal (İç) gezegenlerin en büyüğü hangisidir?", a: "Mars", b: "Dünya", correct: 2 },
+    { q: "Aşağıdakilerden hangisi bir gazsal (dış) gezegendir?", a: "Jüpiter", b: "Dünya", correct: 1 },
+    { q: "İç gezegenlerin tümü için aşağıdakilerden hangisi söylenebilir?", a: "Yüzeyleri kayalıktır", b: "Halkaları vardır", correct: 1 },
+    { q: "Dış gezegenlerin tamamının ortak özelliği nedir?", a: "Sıcaktırlar", b: "Halkaları vardır", correct: 2 },
+    { q: "Karasal gezegenler ile gazsal gezegenleri birbirinden ayıran kuşak hangisidir?", a: "Kuiper kuşağı", b: "Asteroit kuşağı", correct: 2 },
+    { q: "Aşağıdakilerden hangisi Güneş'e yakınlık sırasına göre ilk 4 gezegenden biridir?", a: "Jüpiter", b: "Mars", correct: 2 },
+    { q: "Gazsal gezegenlerin en küçüğü hangisidir?", a: "Neptün", b: "Uranüs", correct: 1 },
+    { q: "Asteroit kuşağı hangi iki gezegen arasında yer alır?", a: "Mars ve Jüpiter", b: "Dünya ve Mars", correct: 1 },
+    { q: "İç gezegenler Güneş'e yakın oldukları için dış gezegenlere göre daha ____ .", a: "Sıcaktırlar", b: "Soğukturlar", correct: 1 },
+    { q: "Karasal gezegenlerin uydusu olma durumu için ne söylenebilir?", a: "Hiçbirinin uydusu yoktur", b: "Az sayıda uyduları vardır veya yoktur", correct: 2 },
+    { q: "Dış gezegenlerin yapısı ağırlıklı olarak neden oluşur?", a: "Gazlardan", b: "Metallerden", correct: 1 },
+    { q: "Güneş'e uzaklık sıralamasında 5. sırada yer alan gezegen hangisidir?", a: "Satürn", b: "Jüpiter", correct: 2 },
+    { q: "Dünya'mız hangi gezegen grubuna girer?", a: "Karasal (İç)", b: "Gazsal (Dış)", correct: 1 },
+    { q: "Merkür, Venüs, Dünya, Mars... Bu gezegenlere ne ad verilir?", a: "Dış Gezegenler", b: "İç Gezegenler", correct: 2 },
+    { q: "Jüpiter, Satürn, Uranüs, Neptün... Bu gezegenlere ne ad verilir?", a: "Gaz Devleri", b: "Kaya Devleri", correct: 1 },
+    { q: "Dış gezegenlerin kütleleri iç gezegenlere göre daha ____ .", a: "Büyüktür", b: "Küçüktür", correct: 1 },
+    { q: "İç gezegenlerin yoğunluğu, dış gezegenlerin yoğunluğundan genelde daha ____ .", a: "Fazladır", b: "Azdır", correct: 1 },
+    { q: "Güneş'e yakınlıkta Dünya kaçıncı sıradadır?", a: "2.", b: "3.", correct: 2 },
+    { q: "Karasal gezegenler arasında en büyük 2. gezegen hangisidir?", a: "Venüs", b: "Mars", correct: 1 },
+    { q: "Dış gezegenlerin Güneş etrafında dolanma süreleri iç gezegenlere göre daha ____ .", a: "Kısadır", b: "Uzundur", correct: 2 },
+
+    // Asteroit, Meteor ve Göktaşı
+    { q: "Güneş sistemi oluşurken arta kalan kaya ve metal parçalarına ne denir?", a: "Asteroit", b: "Yıldız", correct: 1 },
+    { q: "Dünya atmosferine giren asteroit parçalarına ne ad verilir?", a: "Göktaşı çukuru", b: "Meteor", correct: 2 },
+    { q: "Meteorların atmosfere girip yanmasıyla oluşan ışık izine halk arasında ne denir?", a: "Kutup ışığı", b: "Yıldız kayması", correct: 2 },
+    { q: "Atmosferde tamamen yanarak tükenmeyen ve yeryüzüne ulaşan meteor parçalarına ne denir?", a: "Göktaşı (Meteorit)", b: "Asteroit", correct: 1 },
+    { q: "Göktaşlarının yeryüzüne çarpması sonucu yeryüzünde oluşan çukura ne ad verilir?", a: "Krater / Göktaşı çukuru", b: "Volkan ağzı", correct: 1 },
+    { q: "Ay'ın yüzeyinde Dünya'ya göre çok daha fazla krater olmasının temel sebebi nedir?", a: "Ay'ın çok sıcak olması", b: "Ay'ın atmosferinin yok denecek kadar az olması", correct: 2 },
+    { q: "Asteroitler Güneş etrafında dolanır mı?", a: "Evet, dolanırlar", b: "Hayır, sabit dururlar", correct: 1 },
+    { q: "Çoğu asteroit hangi gezegenlerin yörüngeleri arasındadır?", a: "Venüs - Dünya", b: "Mars - Jüpiter", correct: 2 },
+    { q: "Dünya atmosferi, bizi meteorlardan koruyan bir kalkan görevi görür mü?", a: "Evet", b: "Hayır", correct: 1 },
+    { q: "Asteroitlerin diğer adı nedir?", a: "Küçük gezegen (Gezegenimsi)", b: "Kuyruklu yıldız", correct: 1 },
+    { q: "Meteor ve göktaşı aslında aynı yapının farklı evrelerindeki isimleridir. Doğru mu?", a: "Doğru", b: "Yanlış", correct: 1 },
+    { q: "Bir uzay taşının 'yıldız kayması' oluşturması için hangi katmana girmesi gerekir?", a: "Su katmanı", b: "Hava katmanı (Atmosfer)", correct: 2 },
+    { q: "Yeryüzüne düşen göktaşları genellikle hangi maddelerden oluşur?", a: "Sadece buz", b: "Kaya ve metal", correct: 2 },
+    { q: "Göktaşları Dünya'da sadece karalara mı düşer?", a: "Hayır, okyanuslara da düşebilir", b: "Evet, sadece karalara", correct: 1 },
+    { q: "Kuyruklu yıldızlardan kopan parçalar Dünya atmosferine girerse ne oluşur?", a: "Meteor yağmuru", b: "Güneş tutulması", correct: 1 },
+    { q: "Göktaşı çukurları zamanla dünyada neden silinebilir veya kaybolabilir?", a: "Rüzgar, yağmur gibi hava olayları yüzünden", b: "Büyüdükleri için", correct: 1 },
+    { q: "Güneş sistemindeki asteroitler kendi başlarına ışık yayarlar mı?", a: "Evet", b: "Hayır, Güneş'ten aldıklarını yansıtırlar", correct: 2 },
+    { q: "Göktaşlarını inceleyen bilim dalı ile ilgilenenlere ne ad verilir?", a: "Biyolog", b: "Gökbilimci", correct: 2 },
+    { q: "Türkiye'de bilinen en büyük göktaşı çukuru nerededir?", a: "Ağrı (Doğubayazıt)", b: "Ankara", correct: 1 },
+    { q: "Asteroitlerin şekli genellikle nasıldır?", a: "Kusursuz küre", b: "Düzensiz şekilli", correct: 2 },
+
+    // Güneş Tutulması
+    { q: "Güneş tutulması sırasında gök cisimlerinin sıralanışı nasıldır?", a: "Güneş - Ay - Dünya", b: "Güneş - Dünya - Ay", correct: 1 },
+    { q: "Güneş tutulması sırasında Ay, Dünya ile Güneş arasına girdiğinde ne olur?", a: "Ay'ın gölgesi Dünya üzerine düşer", b: "Dünya'nın gölgesi Ay üzerine düşer", correct: 1 },
+    { q: "Güneş tutulması Ay'ın hangi evresinde gerçekleşir?", a: "Dolunay", b: "Yeni Ay", correct: 2 },
+    { q: "Güneş tutulması her Yeni Ay evresinde gerçekleşir mi?", a: "Evet, her ay olur", b: "Hayır, her ay olmaz", correct: 2 },
+    { q: "Neden her Yeni Ay evresinde Güneş tutulması görülmez?", a: "Çünkü Ay çok küçüktür", b: "Çünkü Güneş, Dünya ve Ay her zaman aynı doğrultuda olmaz", correct: 2 },
+    { q: "Güneş tutulmasını izlerken koruyucu gözlük takmak gerekir mi?", a: "Evet, kesinlikle gerekir", b: "Hayır, çıplak gözle izlenebilir", correct: 1 },
+    { q: "Güneş tutulması Dünya üzerinde ne kadar bir alanda gözlemlenebilir?", a: "Tüm Dünya'da", b: "Sadece gölgenin düştüğü dar bir alanda", correct: 2 },
+    { q: "Güneş tutulması olayı genellikle ne kadar sürer?", a: "Birkaç dakika", b: "Birkaç saat", correct: 1 },
+    { q: "Güneş tutulması günün hangi vaktinde izlenebilir?", a: "Sadece gündüz", b: "Sadece gece", correct: 1 },
+    { q: "Tam Güneş tutulması sırasında hava nasıl görünür?", a: "Gece olmuş gibi kararır", b: "Daha da aydınlanır", correct: 1 },
+    { q: "Güneş tutulmasında ışık kaynağı hangisidir?", a: "Güneş", b: "Ay", correct: 1 },
+    { q: "Güneş tutulmasında saydam olmayan (opak) cisim hangisidir?", a: "Güneş", b: "Ay", correct: 2 },
+    { q: "Güneş tutulması bir nevi ışığın _____ yayılmasının kanıtıdır.", a: "Dairesel", b: "Doğrusal", correct: 2 },
+    { q: "Parçalı Güneş tutulmasında Güneş nasıl görünür?", a: "Hilal gibi veya bir kısmı eksik", b: "Tamamen karanlık", correct: 1 },
+    { q: "Güneş tutulmasında Ay'ın boyutu Güneş'i kapatmaya nasıl yeter?", a: "Ay daha büyük olduğu için", b: "Ay Dünya'ya çok daha yakın olduğu için", correct: 2 },
+    { q: "Ay'ın Dünya ile Güneş arasına girmesi olayına genel olarak ne isim verilir?", a: "Tutulma (Güneş)", b: "Kavuşum", correct: 1 },
+    { q: "Halkalı Güneş tutulması neden olur?", a: "Ay, Dünya'ya en uzak konumdayken Güneş'i tam kapatamaz", b: "Güneş daha da büyür", correct: 1 },
+    { q: "Güneş tutulması sırasında sıcaklıkta bir değişim olur mu?", a: "Evet, gölge düşen yerlerde hafifçe düşer", b: "Hayır, hiç değişmez", correct: 1 },
+    { q: "Güneş tutulmasını özel bir teleskop olmadan dürbünle izlemek güvenli midir?", a: "Evet", b: "Hayır, çok tehlikelidir", correct: 2 },
+    { q: "Güneş tutulmaları yılda en az kaç kez gerçekleşebilir?", a: "En az 2 kez", b: "En az 10 kez", correct: 1 },
+
+    // Ay Tutulması
+    { q: "Ay tutulması sırasında gök cisimlerinin sıralanışı nasıldır?", a: "Güneş - Ay - Dünya", b: "Güneş - Dünya - Ay", correct: 2 },
+    { q: "Ay tutulması sırasında Ay, kimin gölgesinde kalır?", a: "Güneş'in", b: "Dünya'nın", correct: 2 },
+    { q: "Ay tutulması Ay'ın hangi evresinde gerçekleşir?", a: "Yeni Ay", b: "Dolunay", correct: 2 },
+    { q: "Her Dolunay evresinde Ay tutulması gerçekleşir mi?", a: "Hayır, yörüngeler her zaman çakışmaz", b: "Evet, her ay mutlaka olur", correct: 1 },
+    { q: "Ay tutulması günün hangi vaktinde gözlemlenir?", a: "Gündüz", b: "Gece", correct: 2 },
+    { q: "Ay tutulmasını izlerken koruyucu gözlüğe ihtiyaç var mıdır?", a: "Hayır, çıplak gözle izlenebilir", b: "Evet, gözler zarar görebilir", correct: 1 },
+    { q: "Ay tutulması Dünya üzerinde ne kadar bir alanda gözlemlenebilir?", a: "Dar bir alanda", b: "Geceyi yaşayan tüm Dünya yüzeyinden", correct: 2 },
+    { q: "Hangi tutulma daha uzun sürer?", a: "Güneş tutulması", b: "Ay tutulması", correct: 2 },
+    { q: "Ay tutulması genellikle ne kadar sürer?", a: "Birkaç dakika", b: "Birkaç saat", correct: 2 },
+    { q: "Tam Ay tutulması sırasında Ay ne renk görünür?", a: "Simsiyah görünmez olur", b: "Kızıl / Kan rengi", correct: 2 },
+    { q: "Ay tutulmasında opak (saydam olmayan) cisim rolünde olan gezegen hangisidir?", a: "Dünya", b: "Ay", correct: 1 },
+    { q: "Ay tutulmasında Dünya, Güneş'e Ay'dan daha mı yakındır?", a: "Evet", b: "Hayır", correct: 1 },
+    { q: "Hem Ay hem de Güneş tutulması aslında birer _____ olayıdır.", a: "Yansıma", b: "Gölge", correct: 2 },
+    { q: "Güneş ve Ay tutulmalarını önceden hesaplamak mümkün müdür?", a: "Evet, astronomlar hesaplayabilir", b: "Hayır, tamamen rastgeledir", correct: 1 },
+    { q: "Ay'ın ışık kaynağı olmadığı halde Dolunay'da parlak görünmesinin sebebi nedir?", a: "İçindeki lavlar", b: "Güneş'ten aldığı ışığı yansıtması", correct: 2 },
+    { q: "Hangi tutulmayı daha sık (daha çok kişinin) görme ihtimali vardır?", a: "Ay tutulması", b: "Güneş tutulması", correct: 1 },
+    { q: "Ay tutulmasının Ay yüzeyine bir zararı var mıdır?", a: "Evet, deprem yapar", b: "Hayır, tamamen doğal bir gölge olayıdır", correct: 2 },
+    { q: "Bir yılda meydana gelen Ay ve Güneş tutulmaları sayısı toplamda 7'yi geçebilir mi?", a: "Geçemez", b: "Geçebilir", correct: 1 },
+    { q: "Güneş tutulması ve Ay tutulması sırasında yörünge düzlemlerinin kesişme noktalarına ne ad verilir?", a: "Düğüm noktaları", b: "Ekvator", correct: 1 },
+    { q: "Tutulmalar, Güneş sistemi ve uzay hakkındaki bilgimizi artırır. Doğru mu?", a: "Doğru", b: "Yanlış", correct: 1 }
+];
+
+for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [questions[i], questions[j]] = [questions[j], questions[i]];
+}
+
+let currentQuestion = 0;
+let score = 0;
+let playerName = "";
+
+// ==========================================
+// 3. OYUN DÖNGÜSÜ & MANTIĞI
+// ==========================================
+function startGame() {
+    const input = document.getElementById("playerName").value;
+    if(!input.trim()) return alert("Adınızı giriniz!");
+    playerName = input.trim();
+    initAudio(); 
+    playSound('correct'); 
+    
+    document.getElementById("login-screen").style.opacity = "0";
+    setTimeout(() => { 
+        document.getElementById("login-screen").style.display = "none"; 
+        
+        const isMobile = window.innerWidth <= 768;
+        const ui = document.getElementById("ui-layer"); 
+        ui.style.display = isMobile ? "block" : "flex"; 
+        
+        setTimeout(()=> ui.style.opacity = "1", 50);
+        renderLeaderboard();
+        loadQuestion();
+    }, 500);
+}
+
+function loadQuestion() {
+    if(currentQuestion >= questions.length) {
+        document.getElementById("question-box").innerHTML = "GÖREV TAMAMLANDI!<br><span style='color:var(--primary); font-size:24px;'>Tüm uzay sorularını bitirdin.</span>";
+        document.querySelector('.button-container').style.display = 'none';
+        saveScore(); return;
+    }
+    
+    const q = questions[currentQuestion];
+    document.getElementById("question-box").innerHTML = q.q;
+    
+    const btnA = document.getElementById("btn-a");
+    const btnB = document.getElementById("btn-b");
+    
+    btnA.innerText = q.a;
+    btnB.innerText = q.b;
+    
+    btnA.classList.remove("btn-disabled");
+    btnB.classList.remove("btn-disabled");
+    
+    document.getElementById("q-count").innerText = currentQuestion + 1;
+    document.getElementById("progress-bar").style.width = ((currentQuestion) / questions.length) * 100 + "%";
+}
+
+function checkAnswer(choice) {
+    const isCorrect = choice === questions[currentQuestion].correct;
+    
+    document.getElementById("btn-a").classList.add("btn-disabled");
+    document.getElementById("btn-b").classList.add("btn-disabled");
+    
+    if(isCorrect) {
+        playSound('correct'); 
+        score += 10; 
+        document.getElementById("score").innerText = score;
+        document.body.classList.add('success-glow'); 
+        setTimeout(() => document.body.classList.remove('success-glow'), 400);
+    } else {
+        playSound('wrong');
+        document.body.classList.add('error-shake'); 
+        setTimeout(() => document.body.classList.remove('error-shake'), 400);
+    }
+    
+    setTimeout(() => {
+        currentQuestion++; 
+        loadQuestion();
+    }, 800);
+}
+
+// ==========================================
+// 4. YEREL LİDERLİK TABLOSU (LOCALSTORAGE)
+// ==========================================
+function saveScore() {
+    let scores = JSON.parse(localStorage.getItem("cagfen_science_scores") || "[]");
+    scores.push({name: playerName, score: score});
+    scores.sort((a,b) => b.score - a.score);
+    scores = scores.slice(0, 6);
+    localStorage.setItem("cagfen_science_scores", JSON.stringify(scores));
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    const list = document.getElementById("lb-list");
+    let scores = JSON.parse(localStorage.getItem("cagfen_science_scores") || "[]");
+    
+    if(scores.length === 0) {
+        list.innerHTML = "<li>Henüz kayıt yok...</li>";
+        return;
+    }
+    
+    list.innerHTML = "";
+    scores.forEach((e, i) => { 
+        list.innerHTML += `<li><span>${i+1}. ${e.name}</span> <span>${e.score} P</span></li>`; 
+    });
+}
+</script>
+</body>
+</html>
